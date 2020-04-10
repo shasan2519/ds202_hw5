@@ -1,0 +1,66 @@
+---
+title: "ds202_hw5"
+author: "Syed Hasan github.com/shasan2519/ds202_hw5"
+date: "4/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem 1
+```{r}
+library(dplyr)
+library(tidyr)
+library(lubridate)
+Liquor <- readr::read_csv("archive.csv")
+```
+
+# Problem 2
+```{r}
+cleanLiquor <- na.omit(Liquor)
+
+
+cleanLiquor <- cleanLiquor %>% separate(col=`Store Location`,into=c("point","coord"),sep="\\(")
+cleanLiquor <- cleanLiquor %>% separate(col=coord,into=c("Lat","Long"),sep=" ")
+
+
+cleanLiquor$Long <- substr(cleanLiquor$Long,1,nchar(cleanLiquor$Long)-1)
+cleanLiquor <- cleanLiquor %>% select(-`Invoice/Item Number`,-point) %>% mutate(Lat=as.numeric(Lat),Long=as.numeric(Long))
+
+cleanLiquor <- cleanLiquor %>% mutate(Date=mdy(Date))
+
+#set yyyy/mm/dd
+cleanLiquor <- cleanLiquor %>% mutate(Year = year(Date),Month=month(Date),Day=day(Date))
+```
+
+#Problem 3
+```{r}
+library(ggplot2)
+
+ggplot(data=cleanLiquor,aes(y=Lat,x=Long))+geom_jitter()+labs(y="Latitude",x="Longitude")
+cleanLiquor %>% ggplot(aes(x= 'Category Name', y='Volume Sold (Gallons)'))+geom_bar(stat="identity") +facet_wrap(~`Category Name`)
+```
+  
+
+  
+  
+  
+# Problem 4  
+```{r}
+p4  <- cleanLiquor %>% group_by(Month,Day) %>% summarize(Number=n(),Quantity=sum(`Volume Sold (Gallons)`),Revenue = sum(`Sale (Dollars)`))
+summary(p4)
+```
+  
+  
+# Problem 5
+```{r}
+p5<-p4 %>% ggplot(aes(x=Day,y=Quantity))+geom_jitter()+geom_smooth(method="lm")+facet_wrap(~Month)
+p5
+```
+
+Liquor sales increase in august during commencement of fall semester. Decreases during Christmas season as student head back home. Decline in April is unexplainable but the decrease in May is reasonalbe as students leave for summer. 
+  
+# Problem 6  
+Sharp increase can be indictated by the outlier in august. PLus the slope in the 8th is the highest than any month in this model. This shows football games contribute to higher alcohol consumption among students.
